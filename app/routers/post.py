@@ -19,14 +19,7 @@ def get_posts(
 ):
     # cursor.execute("""SELECT * FROM posts""")
     # posts = cursor.fetchall()
-    # posts = (
-    #     db.query(models.Post)
-    #     .filter(models.Post.title.contains(search))
-    #     .order_by(models.Post.created_at)
-    #     .limit(limit)
-    #     .offset(skip)
-    #     .all()
-    # )
+
     posts = (
         db.query(models.Post, func.count(models.Vote.post_id).label("votes"))
         .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
@@ -40,7 +33,7 @@ def get_posts(
     return posts
 
 
-@router.get("/{id}", response_model=schemas.PostOut)
+@router.get("/{id}/", response_model=schemas.PostOut)
 def get_post(id: int, db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM posts WHERE id = %s """, (str(id),))
     # post = cursor.fetchone()
@@ -59,7 +52,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
     return post
 
 
-@router.put("/{id}", response_model=schemas.Post)
+@router.put("/{id}/", response_model=schemas.PostOut)
 def update_post(
     id: int,
     post: schemas.PostUpdate,
@@ -89,11 +82,19 @@ def update_post(
     post_query.update(post.dict(), synchronize_session=False)
     db.commit()
 
-    return post_query.first()
+    updated_post = (
+        db.query(models.Post, func.count(models.Vote.post_id).label("votes"))
+        .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
+        .group_by(models.Post.id)
+        .filter(models.Post.id == id)
+        .first()
+    )
+
+    return updated_post
 
 
 @router.post(
-    "/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post
+    "/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostOut
 )
 def create_post(
     post: schemas.PostCreate,
@@ -109,11 +110,20 @@ def create_post(
     new_post = models.Post(owner_id=current_user.id, **post.dict())
     db.add(new_post)
     db.commit()
-    db.refresh(new_post)
-    return new_post
+
+    # db.refresh(new_post)
+
+    post = (
+        db.query(models.Post, func.count(models.Vote.post_id).label("votes"))
+        .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
+        .group_by(models.Post.id)
+        .filter(models.Post.id == new_post.id)
+        .first()
+    )
+    return post
 
 
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(
     id: int,
     db: Session = Depends(get_db),

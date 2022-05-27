@@ -10,7 +10,7 @@ from .. import utils, oauth2
 router = APIRouter(tags=["Authentication"])
 
 
-@router.post("/login", response_model=schemas.Token)
+@router.post("/login/", response_model=schemas.Token)
 def login(
     user_credentials: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
