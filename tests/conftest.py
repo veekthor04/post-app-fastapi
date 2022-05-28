@@ -12,7 +12,7 @@ from app.oauth2 import create_access_token
 from app import models
 
 
-DATABASE_URL = f"{settings.DATABASE_URL}_test"
+DATABASE_URL = settings.DATABASE_URL
 
 engine = create_engine(DATABASE_URL)
 
