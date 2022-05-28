@@ -9,6 +9,13 @@ on:
 
 jobs:
   job1:
+    environment:
+      name: testing
+    env: 
+      - DATABASE_URL: ${{secrets.DATABASE_URL}}
+      - SECRET_KEY: ${{secrets.SECRET_KEY}}
+      - ALGORITHM: ${{secrets.ALGORITHM}}
+      - ACCESS_TOKEN_EXPIRE_MINUTES: ${{secrets.ACCESS_TOKEN_EXPIRE_MINUTES}}
     runs-on: ubuntu-latest
     steps:
       - name: pulling git repo
