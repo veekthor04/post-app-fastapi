@@ -11,7 +11,6 @@ SECRET_KEY = settings.SECRET_KEY
 
 def test_root(client: TestClient):
     res = client.get("/")
-    assert res.json().get("message") == "Hello world"
     assert res.status_code == 200
 
 
